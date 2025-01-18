@@ -4,7 +4,7 @@ module "origin_request_lambda" {
   name        = "rewrite-trailing-slash"
   app_name    = "web-api"
   app_owner   = "web-core-team"
-  environment = "prod"
+  environment = "dev"
 }
 
 module "web_api_auth" {
@@ -12,7 +12,7 @@ module "web_api_auth" {
 
   app_name                       = "web-api"
   app_owner                      = "web-core-team"
-  environment                    = "prod"
+  environment                    = "dev"
   app_component_index            = 1
   app_component                  = "auth"
   app_component_path_prefix      = "/auth"
@@ -24,7 +24,7 @@ module "web_api_info" {
 
   app_name                       = "web-api"
   app_owner                      = "web-core-team"
-  environment                    = "prod"
+  environment                    = "dev"
   app_component_index            = 2
   app_component                  = "info"
   app_component_path_prefix      = "/info"
@@ -36,7 +36,7 @@ module "web_api_customers" {
 
   app_name                       = "web-api"
   app_owner                      = "web-core-team"
-  environment                    = "prod"
+  environment                    = "dev"
   app_component_index            = 3
   app_component                  = "customers"
   app_component_path_prefix      = "/customers"

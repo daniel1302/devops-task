@@ -1,22 +1,10 @@
 data "aws_iam_policy_document" "s3_bucket_policy" {
-  for_each = {
-    auth = {
-      bucket_arn = aws_s3_bucket.bucket1.arn
-      cloudfront_arn = aws_cloudfront_distribution.distribution["auth"].arn
-    },
-    info = {
-      bucket_arn = aws_s3_bucket.bucket2.arn
-      cloudfront_arn = aws_cloudfront_distribution.distribution["info"].arn
-    },
-    customers = {
-      bucket_arn = aws_s3_bucket.bucket3.arn
-      cloudfront_arn = aws_cloudfront_distribution.distribution["customers"].arn
-    }
-  }
-    
   statement {
-    actions   = ["s3:GetObject"]
-    resources = ["${each.value.bucket_arn}/*"]
+    actions = ["s3:GetObject"]
+    resources = [
+      "${aws_s3_bucket.this.arn}${var.app_component_path_prefix}/*",
+      "${aws_s3_bucket.this.arn}/404.html",
+    ]
     principals {
       type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
@@ -24,18 +12,12 @@ data "aws_iam_policy_document" "s3_bucket_policy" {
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
-      values   = [each.value.cloudfront_arn]
+      values   = [aws_cloudfront_distribution.distribution.arn]
     }
   }
 }
 
 resource "aws_s3_bucket_policy" "static_site_bucket_policy" {
-  for_each = {
-    auth      = aws_s3_bucket.bucket1.id
-    info      = aws_s3_bucket.bucket2.id
-    customers = aws_s3_bucket.bucket3.id
-  }
-  
-  bucket = each.value
-  policy = data.aws_iam_policy_document.s3_bucket_policy[each.key].json
+  bucket = aws_s3_bucket.this.id
+  policy = data.aws_iam_policy_document.s3_bucket_policy.json
 }

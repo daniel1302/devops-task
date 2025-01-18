@@ -1,35 +1,14 @@
-resource "aws_s3_bucket" "bucket1" {
-  bucket_prefix = "bucket1-${var.environment}-"
+resource "aws_s3_bucket" "this" {
+  bucket_prefix = "bucket${var.app_component_index}-${var.environment}-"
 
   tags = merge(local.common_tags, {
-    name = "bucket1-${var.environment}"
+    name = "bucket${var.app_component_index}-${var.environment}"
   })
 }
 
-resource "aws_s3_bucket" "bucket2" {
-  bucket_prefix = "bucket2-${var.environment}-"
-
-  tags = merge(local.common_tags, {
-    name = "bucket2-${var.environment}"
-  })
-}
-
-resource "aws_s3_bucket" "bucket3" {
-  bucket_prefix = "bucket3-${var.environment}-"
-
-  tags = merge(local.common_tags, {
-    name = "bucket3-${var.environment}"
-  })
-}
 
 resource "aws_s3_bucket_public_access_block" "block_public_access_for_static_sites" {
-  for_each = {
-    auth      = aws_s3_bucket.bucket1.id,
-    info      = aws_s3_bucket.bucket2.id,
-    customers = aws_s3_bucket.bucket3.id,
-  }
-
-  bucket = each.value
+  bucket = aws_s3_bucket.this.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -38,13 +17,7 @@ resource "aws_s3_bucket_public_access_block" "block_public_access_for_static_sit
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "default_encryption" {
-  for_each = {
-    auth      = aws_s3_bucket.bucket1.id,
-    info      = aws_s3_bucket.bucket2.id,
-    customers = aws_s3_bucket.bucket3.id,
-  }
-
-  bucket = each.value
+  bucket = aws_s3_bucket.this.id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -54,13 +27,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "default_encryptio
 }
 
 resource "aws_s3_bucket_versioning" "default_versioning" {
-  for_each = {
-    auth      = aws_s3_bucket.bucket1.id,
-    info      = aws_s3_bucket.bucket2.id,
-    customers = aws_s3_bucket.bucket3.id,
-  }
-
-  bucket = each.value
+  bucket = aws_s3_bucket.this.id
 
   versioning_configuration {
     status     = "Enabled"
@@ -71,21 +38,6 @@ resource "aws_s3_bucket_versioning" "default_versioning" {
 // Create default contents of the files but never update them if another version 
 // of the file already exists. For example when deployed by an external CI/CD pipeline
 resource "aws_s3_object" "default_index_content" {
-  for_each = {
-    auth = {
-      bucket_id = aws_s3_bucket.bucket1.id
-      content   = "Hello from Auth"
-    },
-    info = {
-      bucket_id = aws_s3_bucket.bucket2.id
-      content   = "Hello from Info"
-    },
-    customers = {
-      bucket_id = aws_s3_bucket.bucket3.id
-      content   = "Hello from Customers"
-    }
-  }
-
   // Must have bucket versioning enabled first
   depends_on = [
     aws_s3_bucket_versioning.default_versioning,
@@ -93,9 +45,9 @@ resource "aws_s3_object" "default_index_content" {
     aws_s3_bucket_public_access_block.block_public_access_for_static_sites
   ]
 
-  key     = "${each.key}/index.html"
-  bucket  = each.value.bucket_id
-  content = each.value.content
+  key          = "${var.app_component_path_prefix}/index.html"
+  bucket       = aws_s3_bucket.this.id
+  content      = "Hello from ${var.app_component}"
   content_type = "text/html"
 
   // Ignore changes to the file(this mean the terraform will not overwrite this file in future)
@@ -104,14 +56,7 @@ resource "aws_s3_object" "default_index_content" {
   # }
 }
 
-
-resource "aws_s3_object" "default_error_content" {
-  for_each = {
-    auth      = aws_s3_bucket.bucket1.id
-    info      = aws_s3_bucket.bucket2.id
-    customers = aws_s3_bucket.bucket3.id
-  }
-
+resource "aws_s3_object" "default_404_content" {
   // Must have bucket versioning enabled first
   depends_on = [
     aws_s3_bucket_versioning.default_versioning,
@@ -119,9 +64,9 @@ resource "aws_s3_object" "default_error_content" {
     aws_s3_bucket_public_access_block.block_public_access_for_static_sites
   ]
 
-  key     = "404.html"
-  bucket  = each.value
-  content = "Not found"
+  key          = "/404.html"
+  bucket       = aws_s3_bucket.this.id
+  content      = "Not found"
   content_type = "text/html"
 
   // Ignore changes to the file(this mean the terraform will not overwrite this file in future)

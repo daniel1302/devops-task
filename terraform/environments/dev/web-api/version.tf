@@ -7,7 +7,7 @@ terraform {
   }
 
   backend "consul" {
-    path = "terraform/devops-task/web-api-prod"
+    path = "terraform/devops-task/web-api-dev"
   }
 }
 
