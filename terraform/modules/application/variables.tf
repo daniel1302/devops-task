@@ -12,4 +12,3 @@ variable "environment" {
   type        = string
   description = "An application environment"
 }
-
