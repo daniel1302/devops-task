@@ -2,6 +2,24 @@
 
 This Terraform setup deploys the `web-api` application to three environments (`prod`, `staging`, and `dev`) while utilizing persistent state management through a Consul cluster. It also incorporates shared modules to provide modular and reusable infrastructure components.
 
+## Getting Started
+
+Before you start:
+
+Set Up Environment Variables:
+
+- Copy the example environment file: `cp .env.example .env`
+- Open the `.env` file and fill in the required details (e.g., Consul credentials etc.).
+- Export defined environment variables with: `source .env`
+
+Then you should be able to deploy infrastructure:
+
+```shell
+cd environments/<env>/web-api;
+terraform init; # required only once to init the modules
+terraform plan && terraform apply 
+```
+
 ## Environments
 
 The `web-api` application is deployed to the following environments:
