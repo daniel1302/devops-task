@@ -5,3 +5,7 @@ This is an interview task repository for a devops role. The requirements were to
 ## Components
 
 Each component has its own README.md file in the corresponding directory. See there for more details regarding each component
+
+- [Ansible README](./ansible/README.md)
+- [Terraform README](./terraform/README.md)
+- [Dummy API README](./api/README.md)
