@@ -1,0 +1,4 @@
+---
+zfs_volume_pool_name: ""
+zfs_volume_device: ""
+zfs_volume_mount_point: ""

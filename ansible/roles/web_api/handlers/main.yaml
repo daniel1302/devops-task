@@ -1,0 +1,14 @@
+- name: Deploy web-api stack
+  become_user: web-api
+  become: true
+  ansible.builtin.shell:
+    chdir: /home/web-api/
+    cmd: docker stack deploy --detach=false --compose-file docker-compose.yaml web-api
+  changed_when: true
+
+- name: "Verify web-api deployment"
+  become_user: web-api
+  become: true
+  ansible.builtin.shell:
+    cmd: curl --fail http://localhost:8081/environment
+  changed_when: true

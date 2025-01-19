@@ -1,0 +1,28 @@
+---
+- name: Ensure group "web-api" exists
+  ansible.builtin.group:
+    name: web-api
+    state: present
+
+- name: Ensure a 'web-api' user exists
+  ansible.builtin.user:
+    name: web-api
+    create_home: true
+    password: ''
+    shell: /bin/bash
+    groups: sudo,web-api,docker
+    append: true
+
+- name: Template an application files
+  ansible.builtin.template:
+    src: "{{- item -}}.j2"
+    dest: "/{{- item -}}"
+    mode: '0664'
+    backup: true
+  with_items:
+    - home/web-api/.env-api
+    - home/web-api/docker-compose.yaml
+  notify: 
+    - "Deploy web-api stack"
+    - "Verify web-api deployment"
+

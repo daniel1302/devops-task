@@ -1,0 +1,39 @@
+---
+- name: Install required software
+  when: zfs_volume_device != ""
+  ansible.builtin.apt:
+    pkg:
+      - zfsutils-linux
+  retries: 3
+  delay: 3
+  register: zfs_volume_install
+  until: zfs_volume_install is succeeded
+
+- name: Ensure mountpoint exists
+  when: zfs_volume_device != ""
+  ansible.builtin.file:
+    path: "{{- zfs_volume_mount_point }}"
+    state: "directory"
+    mode: '0755'
+
+- name: Validate data
+  ansible.builtin.fail:
+    msg: Missing parameters for ZFS module
+  when: zfs_volume_device != "" and (zfs_volume_pool_name == "" or zfs_volume_mount_point == "")
+
+- name: Create pool
+  when: zfs_volume_device != ""
+  ansible.builtin.shell: |
+    set -o pipefail
+
+    zpool create -m "{{ zfs_volume_mount_point }}" -f -o ashift=12 "{{- zfs_volume_pool_name -}}" "{{- zfs_volume_device -}}";
+    zfs set atime=off "{{- zfs_volume_pool_name -}}";
+    zfs set compression=zstd "{{- zfs_volume_pool_name -}}";
+    # enable improved extended attributes - keep in inode instead of dir;
+    zfs set xattr=sa "{{- zfs_volume_pool_name -}}";
+    # reduce amount of metadata (may improve random writes);
+    zfs set redundant_metadata=most "{{- zfs_volume_pool_name -}}";
+    touch "/.zfs_created_{{- zfs_volume_pool_name -}}"
+  args:
+    executable: /bin/bash
+    creates: "/.zfs_created_{{- zfs_volume_pool_name -}}"

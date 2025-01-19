@@ -1,0 +1,63 @@
+---
+- name: Install software
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+  retries: 3
+  delay: 3
+  register: docker_apt_common_result
+  until: docker_apt_common_result is succeeded
+
+- name: Add apt key for required repositories
+  ansible.builtin.apt_key:
+    url: '{{ item }}'
+    state: present
+  with_items:
+    # docker
+    - https://download.docker.com/linux/ubuntu/gpg
+
+- name: Add required source repositories into sources list
+  ansible.builtin.apt_repository:
+    repo: '{{ item }}'
+    state: present
+  with_items:
+    - "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+
+- name: Install software
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+  retries: 3
+  delay: 3
+  register: docker_apt_result
+  until: docker_apt_result is succeeded
+  when: not ansible_check_mode
+  notify: "Restart docker"
+
+- name: Update /etc/docker/daemon.json
+  ansible.builtin.template:
+    src: etc/docker/daemon.json.j2
+    dest: /etc/docker/daemon.json
+    mode: '0664'
+    backup: true
+  notify: "Restart docker"
+
+- name: Init swarm
+  ansible.builtin.shell: |
+    set -o pipefail
+
+    docker swarm init;
+    touch /.docker_swarm_initialized
+  when: docker_init_swarm
+  args:
+    executable: /bin/bash
+    creates: "/.docker_swarm_initialized"

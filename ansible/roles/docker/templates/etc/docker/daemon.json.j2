@@ -1,0 +1,5 @@
+{
+{% if docker_storage_driver != "" %}
+    "storage-driver": "{{- docker_storage_driver -}}"
+{% endif %}
+}

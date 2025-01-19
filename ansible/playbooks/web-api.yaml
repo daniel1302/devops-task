@@ -1,0 +1,9 @@
+---
+- name: Deploy web-api
+  hosts: web-api
+  become: true
+  become_user: root
+  roles:
+    - role: zfs_volume
+    - role: docker
+    - role: web_api

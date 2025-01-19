@@ -1,0 +1,32 @@
+version: '3'
+services:
+  web-api:
+    image: {{ web_api_docker_image }}
+    hostname: api
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: curl --fail http://localhost:8081/healtz || exit 1
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    deploy:
+      mode: replicated
+      endpoint_mode: vip
+      replicas: {{ web_api_replicas }}
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1.5G
+        reservations:
+          cpus: '0.3'
+          memory: 1G
+    env_file: 
+      - .env-api
+    volumes:
+      - secret-keys-volume:/secret-keys-volume
+
+
+volumes:
+  secret-keys-volume:

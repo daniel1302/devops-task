@@ -1,0 +1,27 @@
+---
+web-api:
+  hosts:
+    host1:
+      web_api_app_env_TUNING: true
+      web_api_app_env_DEBUG: true
+      web_api_app_env_EXTERNAL_URL: "https://dev/approve"
+      web_api_app_env_CLIENT: "dev_client_external"
+      web_api_app_env_INTERACTION_MODE: "API"
+      web_api_app_env_DEVICE_ID: 2346456
+      web_api_docker_image: daniel1302/devops-task-api:v0.0.2
+      web_api_replicas: 3
+    host2:
+      web_api_app_env_TUNING: true
+      web_api_app_env_DEBUG: false
+      web_api_app_env_EXTERNAL_URL: "https://staging/approve"
+      web_api_app_env_CLIENT: "staging_client_external"
+      web_api_app_env_INTERACTION_MODE: "API"
+      web_api_app_env_DEVICE_ID: 32443532
+      web_api_docker_image: daniel1302/devops-task-api:v0.0.2
+      web_api_replicas: 3
+  vars:
+    zfs_volume_pool_name: zfs_docker
+    zfs_volume_device: /dev/sda
+    zfs_volume_mount_point: "/var/lib/docker"
+    docker_storage_driver: "zfs"
+    docker_init_swarm: true

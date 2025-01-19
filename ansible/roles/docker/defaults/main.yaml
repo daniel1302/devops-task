@@ -1,0 +1,2 @@
+docker_storage_driver: ""
+docker_init_swarm: false
